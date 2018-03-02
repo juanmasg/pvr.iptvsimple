@@ -33,7 +33,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <unistd.h>
+//#include <unistd.h>
+#include <io.h>
 
 using namespace ADDON;
 
