@@ -489,27 +489,28 @@ PVR_ERROR SignalStatus(PVR_SIGNAL_STATUS &signalStatus)
 }
 
 PVR_ERROR AddTimer(const PVR_TIMER &timer)
-{
+{XBMC->Log(LOG_ERROR,"AddTimer");
+	//return PVR_ERROR_NO_ERROR;
   return m_recorder->AddTimer (timer);
 }
 
 PVR_ERROR DeleteTimer(const PVR_TIMER &timer, bool bForceDelete)
-{
+{XBMC->Log(LOG_ERROR,"DeleteTimer");//return PVR_ERROR_NO_ERROR;
   return m_recorder->DeleteTimer (timer,bForceDelete);
 }
 
 PVR_ERROR UpdateTimer(const PVR_TIMER &timer)
-{
+{XBMC->Log(LOG_ERROR,"UpdateTimer");//return PVR_ERROR_NO_ERROR;
   return m_recorder->UpdateTimer (timer);
 }
 
 PVR_ERROR GetTimers(ADDON_HANDLE handle)
-{
+{XBMC->Log(LOG_ERROR,"GetTimers");//return PVR_ERROR_NO_ERROR;
   return m_recorder->GetTimers(handle);
 }
 
 int GetTimersAmount(void)
-{
+{XBMC->Log(LOG_ERROR,"GetTimersAmount");
   int job = m_recorder->GetTimersAmount();
   return job; 
 }

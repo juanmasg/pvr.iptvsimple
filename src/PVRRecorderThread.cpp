@@ -35,6 +35,7 @@
 #include <string>
 //#include <unistd.h>
 #include <io.h>
+#include <windows.h>
 
 using namespace ADDON;
 
@@ -247,7 +248,8 @@ void *PVRRecorderThread::Process(void)
     }
     else
     {
-	strParams =  " -i \""+strParams+"\" "+g_ffmpegParams+" -f "+g_fileExtension+" -";
+	//strParams =  " -i \""+strParams+"\" "+g_ffmpegParams+" -f "+g_fileExtension+" "+videoFile.c_str()+"x."+g_fileExtension;
+	strParams =  " -i \""+strParams+"\" "+g_ffmpegParams+" \""+videoFile.c_str()+"."+g_fileExtension+"\"";
 	if (g_ffmpegPath.length()==0)
 	{
 	    XBMC->Log(LOG_ERROR,"Path to ffmpeg binary is not set. Please change addon configuration.");
@@ -279,17 +281,20 @@ void *PVRRecorderThread::Process(void)
     es.start( strCommand , strParams);
 
     XBMC->Log(LOG_NOTICE,"Set stream timeout: %d",g_streamTimeout);
-    void *fileHandle;
-    fileHandle = XBMC->OpenFileForWrite(videoFile.c_str(), true);
+    //void *fileHandle;
+    //fileHandle = XBMC->OpenFileForWrite(videoFile.c_str(), true);
+	XBMC->Log(LOG_NOTICE,"videoFile: %s",videoFile.c_str());
     
-    string buffer;
+    //string buffer;
     //int bytes_read;
     streamsize bytes_read;
     bool startTransmission = false;
     bool firstKilobyteReaded = false;
     time_t last_readed = time(NULL);
     while(true)
-    {
+    {	
+	Sleep(1000);
+	/*
 	string buff;
 	try {
 	    getline( es.out(bytes_read), buff,'\n' ).good();
@@ -349,10 +354,12 @@ void *PVRRecorderThread::Process(void)
 	}catch( std::exception const & e ) {
 	    //nothing to read
 	}
+	*/
 	
 	p_RecJob->getJobEntry(t_iClientIndex, entry);
 	
 	now = time(NULL);
+	/*
 	if (now-last_readed>=g_streamTimeout)
 	{
 	    //something wrong - data not growing
@@ -370,7 +377,7 @@ void *PVRRecorderThread::Process(void)
 	    }
 	    else
 	    {
-		XBMC->DeleteFile(videoFile.c_str());
+		//XBMC->DeleteFile(videoFile.c_str());
 	    }
             entry.Status = PVR_STREAM_STOPPED;
             entry.Timer.state= PVR_TIMER_STATE_ERROR;
@@ -379,14 +386,15 @@ void *PVRRecorderThread::Process(void)
             return NULL;
 	    
 	}
+	*/
         if (entry.Timer.endTime<time(NULL) || entry.Status==PVR_STREAM_IS_STOPPING || entry.Status==PVR_STREAM_STOPPED)
         {
 	    es.close();
 	    es.kill();
-            XBMC->CloseFile(fileHandle);
+            //XBMC->CloseFile(fileHandle);
                             
             XBMC->Log(LOG_NOTICE, "Recording stopped %s", entry.Timer.strTitle);
-                   
+            /*       
             //Correct duration time
 	    if (length>0)
 	    {
@@ -395,8 +403,9 @@ void *PVRRecorderThread::Process(void)
 	    }
 	    else
 	    {
-		XBMC->DeleteFile(videoFile.c_str());
+		//XBMC->DeleteFile(videoFile.c_str());
 	    }
+	    */
             entry.Status = PVR_STREAM_STOPPED;
             entry.Timer.state= PVR_TIMER_STATE_COMPLETED;
             p_RecJob->updateJobEntry(entry);
@@ -406,18 +415,18 @@ void *PVRRecorderThread::Process(void)
     }
     es.close();
     es.kill();
-    XBMC->CloseFile(fileHandle);
+    //XBMC->CloseFile(fileHandle);
     time_t end_time = time(NULL);
     //Correct duration time
     if (length>0)
     {
 	double duration = end_time-t_startRecTime;
-	CorrectDurationFLVFile (videoFile,duration);
+	//CorrectDurationFLVFile (videoFile,duration);
     }
     else
     {
 	//File is empty
-	XBMC->DeleteFile(videoFile.c_str());
+	//XBMC->DeleteFile(videoFile.c_str());
     }
     entry.Status = PVR_STREAM_STOPPED;
     entry.Timer.state= PVR_TIMER_STATE_COMPLETED;

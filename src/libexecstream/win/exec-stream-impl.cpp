@@ -62,7 +62,7 @@ exec_stream_t::impl_t::impl_t()
     m_in_pipe=0;
     m_out_pipe=0;
     m_err_pipe=0;
-    m_child_timeout=500;
+    m_child_timeout=5000;
     m_exit_code=0;
 }
 
@@ -168,7 +168,7 @@ void exec_stream_t::start( std::string const & program, std::string const & argu
     si.cb=sizeof( si );
     PROCESS_INFORMATION pi;
     ZeroMemory( &pi, sizeof( pi ) );
-    if( !CreateProcess( 0, const_cast< char * >( command.c_str() ), 0, 0, TRUE, 0, 0, 0, &si, &pi ) ) {
+    if( !CreateProcess( 0, const_cast< char * >( command.c_str() ), 0, 0, TRUE, CREATE_NO_WINDOW, 0, 0, &si, &pi ) ) {
         throw os_error_t( "exec_stream_t::start: CreateProcess failed.\n command line was: "+command );
     }
 
