@@ -567,7 +567,8 @@ int GetRecordingsAmount(bool deleted) {
   }
   closedir(dp);
 
-    XBMC->Log(LOG_DEBUG, " Recordings aomut %d",count);
+    XBMC->Log(LOG_DEBUG, " Recordings amount %d",count);
+    PVR->TriggerRecordingUpdate();
   return count;
 }
 
