@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="pvr.iptvsimple"
-  version="3.0.1"
+  version="3.0.1p"
   name="PVR IPTV Simple Client"
-  provider-name="nightik">
+  provider-name="primaeval">
   <requires>
     <c-pluff version="0.1"/>
     <import addon="xbmc.pvr" version="5.2.1"/>
