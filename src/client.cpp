@@ -31,10 +31,33 @@
 using namespace ADDON;
 
 #include "PVRRecorder.h"
-
+#include "dirent.h"
 
 #ifdef TARGET_WINDOWS
 #define snprintf _snprintf
+
+#include <time.h>
+#include <iomanip>
+#include <sstream>
+
+extern "C" char* strptime(const char* s,
+                          const char* f,
+                          struct tm* tm) {
+  // Isn't the C++ standard lib nice? std::get_time is defined such that its
+  // format parameters are the exact same as strptime. Of course, we have to
+  // create a string stream first, and imbue it with the current C locale, and
+  // we also have to make sure we return the right things if it fails, or
+  // if it succeeds, but this is still far simpler an implementation than any
+  // of the versions in any of the C standard libraries.
+  std::istringstream input(s);
+  input.imbue(std::locale(setlocale(LC_ALL, nullptr)));
+  input >> std::get_time(tm, f);
+  if (input.fail()) {
+    return nullptr;
+  }
+  return (char*)(s + input.tellg());
+}
+
 #endif
 
 bool           m_bCreated       = false;
@@ -527,11 +550,75 @@ bool CanSeekStream(void) {
   return true;
 }
 
+int GetRecordingsAmount(bool deleted) {
+    XBMC->Log(LOG_DEBUG, "Get GetRecordingsAmount");
+  DIR *dp;
+  struct dirent *dirp;
+  if((dp  = opendir(g_recordingsPath.c_str())) == NULL) {
+    XBMC->Log(LOG_DEBUG, "Couldnt open dir %s", g_recordingsPath.c_str());
+    return PVR_ERROR_FAILED;
+  }
+  int count = 0;
+  while ((dirp = readdir(dp)) != NULL) {
+    string filename = string(dirp->d_name);
+    if(strcmp(filename.substr(0,1).c_str(), ".")) {
+      count++;
+    }
+  }
+  closedir(dp);
+
+    XBMC->Log(LOG_DEBUG, " Recordings aomut %d",count);
+  return count;
+}
+
+PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
+    XBMC->Log(LOG_DEBUG, "Get recordings");
+     XBMC->Log(LOG_DEBUG, "Get recordings dir %s", g_recordingsPath.c_str());
+  DIR *dp;
+  struct dirent *dirp;
+  if((dp  = opendir(g_recordingsPath.c_str())) == NULL) {
+    XBMC->Log(LOG_DEBUG, "Couldnt open dir %s", g_recordingsPath.c_str());
+    return PVR_ERROR_FAILED;
+  }
+  int id = 0;
+  while ((dirp = readdir(dp)) != NULL) {
+    string filename = string(dirp->d_name);
+    if(strcmp(filename.substr(0,1).c_str(), ".")) {
+      XBMC->Log(LOG_DEBUG, "Found recording: %s", filename.c_str());
+
+      PVR_RECORDING   tag;
+      memset(&tag, 0, sizeof(PVR_RECORDING));
+      PVR_STRCPY(tag.strRecordingId, to_string(id++).c_str());
+      PVR_STRCPY(tag.strTitle, filename.substr(0, filename.size() - 1 - g_fileExtension.size() - 22).c_str());
+      PVR_STRCPY(tag.strEpisodeName, "");
+      PVR_STRCPY(tag.strChannelName, "");
+      PVR_STRCPY(tag.strPlot, "");
+      PVR_STRCPY(tag.strStreamURL, (g_recordingsPath + filename).c_str());
+      PVR_STRCPY(tag.strDirectory, filename.substr(filename.size() - 1 - g_fileExtension.size() - 20, 4).c_str());
+      tag.bIsDeleted = false;
+      XBMC->Log(LOG_DEBUG, "tag.strTitle: %s", tag.strTitle);
+      XBMC->Log(LOG_DEBUG, "tag.strStreamURL: %s", tag.strStreamURL);
+      XBMC->Log(LOG_DEBUG, "tag.strDirectory: %s", tag.strDirectory);
+
+      string time_details = string(filename.substr(filename.size() - 1 - g_fileExtension.size() - 20, 19));
+      XBMC->Log(LOG_DEBUG, "time_details: %s", time_details);
+      struct tm tm;
+      strptime(time_details.c_str(), "%Y-%m-%d %H-%M-%S", &tm);
+      time_t t = mktime(&tm);
+      tag.recordingTime = t;
+      
+      PVR->TransferRecordingEntry(handle, &tag);
+    }
+  }
+  closedir(dp);
+  return PVR_ERROR_NO_ERROR;
+}
+
 /** UNUSED API FUNCTIONS */
 const char * GetLiveStreamURL(const PVR_CHANNEL &channel)  { return ""; }
 //bool CanPauseStream(void) { return false; }
-int GetRecordingsAmount(bool deleted) { return -1; }
-PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) { return PVR_ERROR_NOT_IMPLEMENTED; }
+//int GetRecordingsAmount(bool deleted) { return -1; }
+//PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR OpenDialogChannelScan(void) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR CallMenuHook(const PVR_MENUHOOK &menuhook, const PVR_MENUHOOK_DATA &item) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR DeleteChannel(const PVR_CHANNEL &channel) { return PVR_ERROR_NOT_IMPLEMENTED; }

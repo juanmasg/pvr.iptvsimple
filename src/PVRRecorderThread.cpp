@@ -18,7 +18,9 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
+ 
+#include "kodi/libXBMC_addon.h"
+#include "kodi/libXBMC_pvr.h"
 #include "p8-platform/util/StringUtils.h"
 #include <map>
 #include "p8-platform/threads/threads.h"
@@ -290,7 +292,7 @@ void *PVRRecorderThread::Process(void)
     //void *fileHandle;
     //fileHandle = XBMC->OpenFileForWrite(videoFile.c_str(), true);
     XBMC->Log(LOG_NOTICE,"videoFile: %s",videoFile.c_str());
-    
+    PVR->TriggerRecordingUpdate();
     //string buffer;
     //int bytes_read;
     //streamsize bytes_read;
@@ -440,7 +442,7 @@ void *PVRRecorderThread::Process(void)
     entry.Timer.state= PVR_TIMER_STATE_COMPLETED;
     p_RecJob->updateJobEntry(entry);
     s_triggerTimerUpdate = true;
-
+    PVR->TriggerRecordingUpdate();
     return NULL;
 	
 }
