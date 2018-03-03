@@ -1,6 +1,6 @@
 /*
- *      Copyright (C) 2015 Radek Kubera
- *      http://github.com/afedchin/xbmc-addon-iptvsimple/
+ *      Copyright (C) 2018 primaeval
+ *      https://github.com/primaeval/pvr.iptvsimple
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,13 @@
 #include "PVRRecJob.h"
 #include <time.h>
 #include <string>
+
+#ifdef _WIN32
 #include <windows.h>
+#define sleep Sleep
+#else
+#include <unistd.h>
+#endif
 
 using namespace ADDON;
 using namespace std;
@@ -68,7 +74,7 @@ void *PVRSchedulerThread::Process(void)
     XBMC->Log(LOG_NOTICE,"Starting scheduler thread");
     isWorking = true;
     while (true) {
-	Sleep(1000);
+        sleep(1000);
         if (b_stop==true)
         {
             isWorking = false;

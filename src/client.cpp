@@ -66,7 +66,7 @@ int         g_iEPGLogos     = 0;
 std::string g_recordingsPath   = "";
 std::string g_ffmpegPath   = "";
 std::string g_ffmpegParams   = "";
-std::string g_rtmpdumpPath   = "";
+//std::string g_rtmpdumpPath   = "";
 std::string g_fileExtension = "";
 int         g_streamTimeout = 60;
 int         g_streamQuality = 1;
@@ -187,11 +187,11 @@ void ADDON_ReadSettings(void)
   if (XBMC->GetSetting("ffmpegParams", &buffer)) {
     g_ffmpegParams = buffer;
   }
-  
+/*
   if (XBMC->GetSetting("rtmpdumpPath", &buffer)) {
     g_rtmpdumpPath = buffer;
   }
-  
+*/
   if (XBMC->GetSetting("fileExtension", &buffer)) {
     g_fileExtension = buffer;
   }
