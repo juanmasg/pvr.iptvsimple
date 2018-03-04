@@ -514,23 +514,22 @@ PVR_ERROR SignalStatus(PVR_SIGNAL_STATUS &signalStatus)
 }
 
 PVR_ERROR AddTimer(const PVR_TIMER &timer)
-{XBMC->Log(LOG_ERROR,"AddTimer");
-	//return PVR_ERROR_NO_ERROR;
+{
   return m_recorder->AddTimer (timer);
 }
 
 PVR_ERROR DeleteTimer(const PVR_TIMER &timer, bool bForceDelete)
-{XBMC->Log(LOG_ERROR,"DeleteTimer");//return PVR_ERROR_NO_ERROR;
+{
   return m_recorder->DeleteTimer (timer,bForceDelete);
 }
 
 PVR_ERROR UpdateTimer(const PVR_TIMER &timer)
-{XBMC->Log(LOG_ERROR,"UpdateTimer");//return PVR_ERROR_NO_ERROR;
+{
   return m_recorder->UpdateTimer (timer);
 }
 
 PVR_ERROR GetTimers(ADDON_HANDLE handle)
-{XBMC->Log(LOG_ERROR,"GetTimers");//return PVR_ERROR_NO_ERROR;
+{
   return m_recorder->GetTimers(handle);
 }
 
@@ -553,7 +552,7 @@ bool CanSeekStream(void) {
 }
 
 int GetRecordingsAmount(bool deleted) {
-    XBMC->Log(LOG_DEBUG, "Get GetRecordingsAmount");
+  XBMC->Log(LOG_DEBUG, "Get GetRecordingsAmount");
   DIR *dp;
   struct dirent *dirp;
   if((dp  = opendir(g_recordingsPath.c_str())) == NULL) {
@@ -569,14 +568,14 @@ int GetRecordingsAmount(bool deleted) {
   }
   closedir(dp);
 
-    XBMC->Log(LOG_DEBUG, " Recordings amount %d",count);
-    PVR->TriggerRecordingUpdate();
+  XBMC->Log(LOG_DEBUG, " Recordings amount %d",count);
+  PVR->TriggerRecordingUpdate();
   return count;
 }
 
 PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
-    XBMC->Log(LOG_DEBUG, "Get recordings");
-     XBMC->Log(LOG_DEBUG, "Get recordings dir %s", g_recordingsPath.c_str());
+  XBMC->Log(LOG_DEBUG, "Get recordings");
+  XBMC->Log(LOG_DEBUG, "Get recordings dir %s", g_recordingsPath.c_str());
   DIR *dp;
   struct dirent *dirp;
   if((dp  = opendir(g_recordingsPath.c_str())) == NULL) {
