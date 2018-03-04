@@ -27,6 +27,7 @@
 #include "xbmc_pvr_dll.h"
 #include "PVRIptvData.h"
 #include "p8-platform/util/util.h"
+//#include "filesystem/SpecialProtocol.h"
 
 using namespace ADDON;
 
@@ -201,6 +202,7 @@ void ADDON_ReadSettings(void)
   
   if (XBMC->GetSetting("recordingsPath", &buffer)) {
     g_recordingsPath = buffer;
+    //TODO g_recordingsPath = CSpecialProtocol::TranslatePath(buffer);
   }
   
   if (XBMC->GetSetting("ffmpegPath", &buffer)) {
