@@ -198,8 +198,10 @@ void *PVRRecorderThread::Process(void)
     t_duration = duration;
     
     double length = 0;
-    
-    int rtmpStream = 0;
+
+    //TODO: handle special url protocols for ffmpeg (| and rtmp)
+
+    //int rtmpStream = 0;
     /*
     if(strStreamUrl.substr(0, 7) == "rtmp://"
        || strStreamUrl.substr(0, 8) == "rtmpt://"
@@ -210,6 +212,7 @@ void *PVRRecorderThread::Process(void)
 	rtmpStream = 1;
     }
     */
+    /*
     vector<string> stremaUrlVect = StringUtils::Split (strStreamUrl," ");
     if (stremaUrlVect.size()>0) {
 	strParams = stremaUrlVect[0];
@@ -236,6 +239,7 @@ void *PVRRecorderThread::Process(void)
 	    }
         }
     }
+    */
     /*
     if(rtmpStream==1)
     {
