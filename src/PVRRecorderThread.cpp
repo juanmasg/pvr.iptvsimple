@@ -212,6 +212,7 @@ void *PVRRecorderThread::Process(void)
 	rtmpStream = 1;
     }
     */
+    strParams = strStreamUrl;
     /*
     vector<string> stremaUrlVect = StringUtils::Split (strStreamUrl," ");
     if (stremaUrlVect.size()>0) {
@@ -371,6 +372,7 @@ void *PVRRecorderThread::Process(void)
 	p_RecJob->getJobEntry(t_iClientIndex, entry);
 	
 	now = time(NULL);
+	//TODO: restart if no data
 	/*
 	if (now-last_readed>=g_streamTimeout)
 	{
