@@ -18,7 +18,7 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
- 
+
 #include "kodi/libXBMC_addon.h"
 #include "kodi/libXBMC_pvr.h"
 #include "p8-platform/util/StringUtils.h"
@@ -70,7 +70,7 @@ PVRRecorderThread::~PVRRecorderThread(void)
     PVR_REC_JOB_ENTRY entry;
     PVRIptvChannel currentChannel;
     p_RecJob->getJobEntry(t_iClientIndex, entry);
-        
+
     XBMC->Log(LOG_DEBUG,"Closing thread %s",entry.Timer.strTitle);
     while (entry.Status==PVR_STREAM_IS_RECORDING)
     {
@@ -129,7 +129,7 @@ void PVRRecorderThread::CorrectDurationFLVFile (const string &videoFile, const d
 	{
 	    buffer[pos+0] = d.dc[7]; buffer[pos+1] = d.dc[6]; buffer[pos+2] = d.dc[5]; buffer[pos+3] = d.dc[4]; buffer[pos+4] = d.dc[3]; buffer[pos+5] = d.dc[2]; buffer[pos+6] = d.dc[1]; buffer[pos+7] = d.dc[0];
 	}
-        
+
 	fileHandle = XBMC->OpenFileForWrite(videoFile.c_str(), 0);
 	XBMC->SeekFile(fileHandle,0, ios::beg);
 	int size = XBMC->WriteFile(fileHandle, buffer, 1024);
@@ -142,13 +142,40 @@ void PVRRecorderThread::CorrectDurationFLVFile (const string &videoFile, const d
     XBMC->Log(LOG_NOTICE, "Duration correction failed");
 }
 
+string urlEncode(string str){
+    string new_str = "";
+    char c;
+    int ic;
+    const char* chars = str.c_str();
+    char bufHex[10];
+    int len = strlen(chars);
+
+    for(int i=0;i<len;i++){
+        c = chars[i];
+        ic = c;
+        // uncomment this if you want to encode spaces with +
+        /*if (c==' ') new_str += '+';
+        else */if (isalnum(c) || c == ' ' || c == '-' || c == '_' || c == '.' || c == '~') new_str += c;
+        else {
+            sprintf(bufHex,"%02X",c & 0xFF);
+            //if(ic < 16)
+                //new_str += "%0";
+            //else
+                new_str += "%";
+            new_str += bufHex;
+        }
+    }
+    return new_str;
+ }
+
+
 void *PVRRecorderThread::Process(void)
-{   
+{
     PVR_REC_JOB_ENTRY entry;
     p_RecJob->getJobEntry(t_iClientIndex, entry);
     entry.Status = PVR_STREAM_IS_RECORDING;
     p_RecJob->updateJobEntry(entry);
-    
+
     struct tm *current;
     time_t now;
 
@@ -164,21 +191,21 @@ void *PVRRecorderThread::Process(void)
     if (current->tm_min<10) min = "0"+min;
     string sec = inttostr(current->tm_sec);
     if (current->tm_sec<10) sec = "0"+sec;
-    
+
     string strDate = " ("+inttostr(current->tm_year+1900)+"-"+month+"-"+day+" "+hour+"-"+min+"-"+sec+")";
-    
+
     XBMC->Log(LOG_NOTICE, "Try to open stream %s", t_currentChannel.strStreamURL.c_str());
-    
+
     //GetPlayList
     vector<string> vstrList;
     PVRPlayList* playList = new PVRPlayList();
     string strStreamUrl = t_currentChannel.strStreamURL;
     playList->GetPlaylist (strStreamUrl, vstrList);
     delete (playList);
-    
-    string filename = entry.Timer.strTitle;
+
+    string filename = urlEncode(entry.Timer.strTitle);
     filename = filename+strDate+"."+g_fileExtension;
-    
+
     string illegalChars = "\\/:?\"<>|*'";
     string::iterator it ( filename.begin() );
     for (it = filename.begin() ; it < filename.end() ; ++it){
@@ -187,16 +214,16 @@ void *PVRRecorderThread::Process(void)
 	    *it = ' ';
 	}
     }
-    
+
     string videoFile = g_recordingsPath + filename;
-    
+
     XBMC->Log(LOG_NOTICE,"File to write: %s ",videoFile.c_str());
     string strParams;
     string strCommand;
-    
+
     double duration = entry.Timer.endTime-entry.Timer.startTime;
     t_duration = duration;
-    
+
     double length = 0;
 
     //TODO: handle special url protocols for ffmpeg (| and rtmp)
@@ -254,7 +281,7 @@ void *PVRRecorderThread::Process(void)
 	    s_triggerTimerUpdate = true;
 	    return NULL;
 	}
-	   
+
 	string strCommandLog = g_rtmpdumpPath+strParams;
 	strCommand = g_rtmpdumpPath;
 	XBMC->Log(LOG_NOTICE,"Starting rtmpdump: %s", strCommandLog.c_str());
@@ -272,7 +299,7 @@ void *PVRRecorderThread::Process(void)
 	    s_triggerTimerUpdate = true;
 	    return NULL;
 	}
-	
+
 	if (g_ffmpegParams.length()==0)
 	{
 	    XBMC->Log(LOG_ERROR,"Recompression params for ffmpeg are not set. Please change addon configuration.");
@@ -281,12 +308,12 @@ void *PVRRecorderThread::Process(void)
 	    p_RecJob->updateJobEntry(entry);
 	    return NULL;
 	}
-	
+
 	string strCommandLog = g_ffmpegPath+strParams;
 	strCommand = g_ffmpegPath;
 	XBMC->Log(LOG_NOTICE,"Starting ffmpeg: %s",strCommandLog.c_str());
     }
-    
+
     //POSIX
     es.set_binary_mode(exec_stream_t::s_out);
     es.set_wait_timeout(exec_stream_t::s_in,g_streamTimeout*1000);
@@ -305,7 +332,7 @@ void *PVRRecorderThread::Process(void)
     //bool firstKilobyteReaded = false;
     //time_t last_readed = time(NULL);
     while(true)
-    {	
+    {
 	sleep(1000);
 	/*
 	string buff;
@@ -314,13 +341,13 @@ void *PVRRecorderThread::Process(void)
 	    buffer = buffer+buff+"\n";
 	    length=length+buff.size();
 	    last_readed = time(NULL);
-	    
+
 	    if (startTransmission == false)
 	    {
 		t_startRecTime = time(NULL);
 		startTransmission = true;
 	    }
-	    
+
 	    if (firstKilobyteReaded==false)
 	    {
 		int loop;
@@ -330,7 +357,7 @@ void *PVRRecorderThread::Process(void)
 		{
 		    if (buffer[loop]=='d' && buffer[loop+1]=='u' && buffer[loop+2]=='r' && buffer[loop+3]=='a' && buffer[loop+4]=='t' && buffer[loop+5]=='i' && buffer[loop+6]=='o' && buffer[loop+7]=='n')
 			pos = loop;
-		} 
+		}
 		if (pos>=0)
 		{
 		    pos = pos+9;
@@ -351,14 +378,14 @@ void *PVRRecorderThread::Process(void)
 			buffer[pos+0] = d.dc[7]; buffer[pos+1] = d.dc[6]; buffer[pos+2] = d.dc[5]; buffer[pos+3] = d.dc[4]; buffer[pos+4] = d.dc[3]; buffer[pos+5] = d.dc[2]; buffer[pos+6] = d.dc[1]; buffer[pos+7] = d.dc[0];
 		    }
 		    XBMC->Log(LOG_NOTICE, "Duration corrected");
-		}    
+		}
 	    }
-	    
+
 	    if (buffer.size()>1024)
 	    {
 		firstKilobyteReaded=true;
 	    }
-	    
+
 	    if (firstKilobyteReaded==true)
 	    {
 		XBMC->WriteFile(fileHandle, buffer.c_str(), buffer.size());
@@ -368,9 +395,9 @@ void *PVRRecorderThread::Process(void)
 	    //nothing to read
 	}
 	*/
-	
+
 	p_RecJob->getJobEntry(t_iClientIndex, entry);
-	
+
 	now = time(NULL);
 	//TODO: restart if no data
 	/*
@@ -380,9 +407,9 @@ void *PVRRecorderThread::Process(void)
 	    es.close();
 	    es.kill();
             XBMC->CloseFile(fileHandle);
-               
+
             XBMC->Log(LOG_NOTICE, "Recording failed %s", entry.Timer.strTitle);
-                   
+
             //Correct duration time
 	    if (length>0)
 	    {
@@ -398,7 +425,7 @@ void *PVRRecorderThread::Process(void)
             p_RecJob->updateJobEntry(entry);
 	    s_triggerTimerUpdate = true;
             return NULL;
-	    
+
 	}
 	*/
         if (entry.Timer.endTime<time(NULL) || entry.Status==PVR_STREAM_IS_STOPPING || entry.Status==PVR_STREAM_STOPPED)
@@ -406,9 +433,9 @@ void *PVRRecorderThread::Process(void)
 	    es.close();
 	    es.kill();
             //XBMC->CloseFile(fileHandle);
-                            
+
             XBMC->Log(LOG_NOTICE, "Recording stopped %s", entry.Timer.strTitle);
-            /*       
+            /*
             //Correct duration time
 	    if (length>0)
 	    {
@@ -450,5 +477,5 @@ void *PVRRecorderThread::Process(void)
     s_triggerTimerUpdate = true;
     PVR->TriggerRecordingUpdate();
     return NULL;
-	
+
 }

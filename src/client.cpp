@@ -573,6 +573,27 @@ int GetRecordingsAmount(bool deleted) {
   return count;
 }
 
+string urlDecode(string str){
+    string ret;
+    char ch;
+    int i, ii, len = str.length();
+
+    for (i=0; i < len; i++){
+        if(str[i] != '%'){
+            if(str[i] == '+')
+                ret += ' ';
+            else
+                ret += str[i];
+        }else{
+            sscanf(str.substr(i + 1, 2).c_str(), "%x", &ii);
+            ch = static_cast<char>(ii);
+            ret += ch;
+            i = i + 2;
+        }
+    }
+    return ret;
+}
+
 PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
   XBMC->Log(LOG_DEBUG, "Get recordings");
   XBMC->Log(LOG_DEBUG, "Get recordings dir %s", g_recordingsPath.c_str());
@@ -592,6 +613,7 @@ PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
       memset(&tag, 0, sizeof(PVR_RECORDING));
       PVR_STRCPY(tag.strRecordingId, to_string(id++).c_str());
       PVR_STRCPY(tag.strTitle, filename.substr(0, filename.size() - 1 - g_fileExtension.size() - 22).c_str());
+      PVR_STRCPY(tag.strTitle, urlDecode(tag.strTitle).c_str());
       PVR_STRCPY(tag.strEpisodeName, "");
       PVR_STRCPY(tag.strChannelName, "");
       PVR_STRCPY(tag.strPlot, "");
