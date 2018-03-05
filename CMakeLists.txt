@@ -1,4 +1,4 @@
-project(pvr.iptvsimple)
+project(pvr.iptvsimple2)
 
 cmake_minimum_required(VERSION 2.6)
 
@@ -30,6 +30,6 @@ set(IPTV_SOURCES src/client.cpp
                  src/PVRPlayList.cpp
                  src/libexecstream/exec-stream.cpp)
 
-build_addon(pvr.iptvsimple IPTV DEPLIBS)
+build_addon(pvr.iptvsimple2 IPTV DEPLIBS)
 
 include(CPack)

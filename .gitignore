@@ -12,7 +12,7 @@ debian/kodi-pvr-iptvsimple.substvars
 debian/kodi-pvr-iptvsimple/
 debian/tmp/
 obj-x86_64-linux-gnu/
-pvr.iptvsimple/addon.xml
+pvr.iptvsimple2/addon.xml
 
 # clion
 .idea/

@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/kodi-pvr/pvr.iptvsimple.svg?branch=master)](https://travis-ci.org/kodi-pvr/pvr.iptvsimple)
+[![Build Status](https://travis-ci.org/kodi-pvr/pvr.iptvsimple2.svg?branch=master)](https://travis-ci.org/kodi-pvr/pvr.iptvsimple2)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/5120/badge.svg)](https://scan.coverity.com/projects/5120)
 
 # IPTV Simple PVR
@@ -9,9 +9,9 @@ IPTV Live TV and Radio PVR client addon for [Kodi] (http://kodi.tv)
 ### Linux
 
 1. `git clone https://github.com/xbmc/xbmc.git`
-2. `git clone https://github.com/kodi-pvr/pvr.iptvsimple.git`
-3. `cd pvr.iptvsimple && mkdir build && cd build`
-4. `cmake -DADDONS_TO_BUILD=pvr.iptvsimple -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../xbmc/addons -DPACKAGE_ZIP=1 ../../xbmc/project/cmake/addons`
+2. `git clone https://github.com/kodi-pvr/pvr.iptvsimple2.git`
+3. `cd pvr.iptvsimple2 && mkdir build && cd build`
+4. `cmake -DADDONS_TO_BUILD=pvr.iptvsimple2 -DADDON_SRC_PREFIX=../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../../xbmc/addons -DPACKAGE_ZIP=1 ../../xbmc/project/cmake/addons`
 5. `make`
 
 ##### Useful links
