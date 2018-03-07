@@ -440,7 +440,9 @@ bool thread_buffer_t::stop_thread()
 bool thread_buffer_t::abort_thread()
 {
     if( m_thread_started ) {
-        if( int code=pthread_cancel( m_thread ) ) {
+	//BUG android has not got pthread_cancel
+        //if( int code=pthread_cancel( m_thread ) ) {
+        if( int code=pthread_kill( m_thread , SIGKILL) ) { //TODO which signal is best?
             throw os_error_t( "thread_buffer_t::abort_thread: pthread_cancel failed", code );
         }
         void * thread_result;

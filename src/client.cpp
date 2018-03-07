@@ -300,10 +300,12 @@ bool ADDON_HasSettings()
   return true;
 }
 
+/*
 unsigned int ADDON_GetSettings(ADDON_StructSetting ***sSet)
 {
   return 0;
 }
+*/
 
 ADDON_STATUS ADDON_SetSetting(const char *settingName, const void *settingValue)
 {
@@ -359,7 +361,7 @@ void OnPowerSavingActivated()
 void OnPowerSavingDeactivated()
 {
 }
-
+/*
 const char* GetPVRAPIVersion(void)
 {
   static const char *strApiVersion = XBMC_PVR_API_VERSION;
@@ -381,7 +383,7 @@ const char* GetMininumGUIAPIVersion(void)
 {
   return ""; // GUI API not used
 }
-
+*/
 PVR_ERROR GetAddonCapabilities(PVR_ADDON_CAPABILITIES* pCapabilities)
 {
   pCapabilities->bSupportsEPG             = true;
@@ -400,11 +402,13 @@ const char *GetBackendName(void)
   return strBackendName;
 }
 
+/*
 const char *GetBackendVersion(void)
 {
   static std::string strBackendVersion = XBMC_PVR_API_VERSION;
   return strBackendVersion.c_str();
 }
+*/
 
 const char *GetConnectionString(void)
 {
@@ -595,15 +599,15 @@ PVR_ERROR GetRecordings(ADDON_HANDLE handle, bool deleted) {
       PVR_STRCPY(tag.strEpisodeName, "");
       PVR_STRCPY(tag.strChannelName, "");
       PVR_STRCPY(tag.strPlot, "");
-      PVR_STRCPY(tag.strStreamURL, (g_recordingsPath + filename).c_str());
+      //PVR_STRCPY(tag.strStreamURL, (g_recordingsPath + filename).c_str());
       PVR_STRCPY(tag.strDirectory, filename.substr(filename.size() - 1 - g_fileExtension.size() - 20, 4).c_str());
       tag.bIsDeleted = false;
       XBMC->Log(LOG_DEBUG, "tag.strTitle: %s", tag.strTitle);
-      XBMC->Log(LOG_DEBUG, "tag.strStreamURL: %s", tag.strStreamURL);
+      //XBMC->Log(LOG_DEBUG, "tag.strStreamURL: %s", tag.strStreamURL);
       XBMC->Log(LOG_DEBUG, "tag.strDirectory: %s", tag.strDirectory);
 
       string time_details = string(filename.substr(filename.size() - 1 - g_fileExtension.size() - 20, 19));
-      XBMC->Log(LOG_DEBUG, "time_details: %s", time_details);
+      //XBMC->Log(LOG_DEBUG, "time_details: %s", time_details);
       struct tm tm;
       strptime(time_details.c_str(), "%Y-%m-%d %H-%M-%S", &tm);
       time_t t = mktime(&tm);
