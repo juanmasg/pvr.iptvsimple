@@ -21,11 +21,16 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
+//#include <kodi/General.h>
+//#include <kodi/Filesystem.h>
+#include <time.h>
 #include "client.h"
 #include "xbmc_pvr_dll.h"
+#include "libXBMC_addon.h"
+#include "kodi_vfs_types.h"
 #include "PVRIptvData.h"
 #include "p8-platform/util/util.h"
+
 
 using namespace ADDON;
 
@@ -63,6 +68,8 @@ bool        g_bTSOverride   = true;
 bool        g_bCacheM3U     = false;
 bool        g_bCacheEPG     = false;
 int         g_iEPGLogos     = 0;
+
+std::vector<std::string> g_timerStamps;
 
 extern std::string PathCombine(const std::string &strPath, const std::string &strFileName)
 {
@@ -424,6 +431,32 @@ PVR_ERROR GetTimerTypes ( PVR_TIMER_TYPE types[], int *size )
     0x0
     ;
 
+  unsigned int TIMER_ONCE_MANUAL_ATTRIBS2 =  PVR_TIMER_TYPE_IS_MANUAL |
+    PVR_TIMER_TYPE_SUPPORTS_ENABLE_DISABLE           |
+    PVR_TIMER_TYPE_SUPPORTS_CHANNELS                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_TIME               |
+    PVR_TIMER_TYPE_SUPPORTS_TITLE_EPG_MATCH          |
+    PVR_TIMER_TYPE_SUPPORTS_FULLTEXT_EPG_MATCH       |
+    PVR_TIMER_TYPE_SUPPORTS_FIRST_DAY                |
+    PVR_TIMER_TYPE_SUPPORTS_WEEKDAYS                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORD_ONLY_NEW_EPISODES |
+    PVR_TIMER_TYPE_SUPPORTS_START_END_MARGIN         |
+    PVR_TIMER_TYPE_SUPPORTS_PRIORITY                 |
+    PVR_TIMER_TYPE_SUPPORTS_LIFETIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_FOLDERS        |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_GROUP          |
+    PVR_TIMER_TYPE_SUPPORTS_END_TIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_ANYTIME            |
+    PVR_TIMER_TYPE_SUPPORTS_END_ANYTIME              |
+    PVR_TIMER_TYPE_SUPPORTS_MAX_RECORDINGS           |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_TAG_ON_CREATE        |
+    //PVR_TIMER_TYPE_FORBIDS_EPG_TAG_ON_CREATE         |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIES_ON_CREATE     |
+    PVR_TIMER_TYPE_SUPPORTS_ANY_CHANNEL               |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIESLINK_ON_CREATE
+    0x0
+    ;
+
   unsigned int TIMER_ONCE_EPG_ATTRIBS = PVR_TIMER_TYPE_IS_REPEATING |
     PVR_TIMER_TYPE_SUPPORTS_ENABLE_DISABLE           |
     PVR_TIMER_TYPE_SUPPORTS_CHANNELS                 |
@@ -475,13 +508,103 @@ PVR_ERROR GetTimerTypes ( PVR_TIMER_TYPE types[], int *size )
     0x0
     ;
 
-  types[0].iId = 0;
+  types[0].iId = 1;
   types[0].iAttributes = TIMER_ONCE_MANUAL_ATTRIBS;
-  types[1].iId = 1;
+  types[1].iId = 2;
   types[1].iAttributes = TIMER_ONCE_EPG_ATTRIBS;
-  types[2].iId = 2;
+  types[2].iId = 3;
   types[2].iAttributes = TIMER_ONCE_EPG_ATTRIBS2;
   *size = 3;
+
+  return PVR_ERROR_NO_ERROR;
+}
+
+int GetTimersAmount(void) {
+  XBMC->Log(LOG_ERROR, ">>>GetTimersAmount");
+  std::string path = "special://temp/timers/";
+  VFSDirEntry *items(0);
+  unsigned int num_items(0);
+  int result = XBMC->GetDirectory(path.c_str(), "", &items, &num_items);
+  XBMC->Log(LOG_ERROR, ">>>GetTimersAmount %d %d", result,num_items);
+  PVR->TriggerTimerUpdate();
+  return num_items;
+}
+
+PVR_ERROR GetTimers(ADDON_HANDLE handle) {
+  XBMC->Log(LOG_ERROR, ">>>GetTimers");
+
+  std::string path = "special://temp/timers/";
+  VFSDirEntry *items(0);
+  unsigned int num_items(0);
+  XBMC->GetDirectory(path.c_str(), "", &items, &num_items);
+  XBMC->Log(LOG_ERROR, ">>>GetTimers %d", num_items);
+  g_timerStamps.clear();
+  for (unsigned int i(0); i < num_items; ++i) {
+    XBMC->Log(LOG_ERROR, ">>>GetTimers %s", items[i].path);
+    if (items[i].folder == false) {
+      g_timerStamps.push_back(items[i].path);
+      PVR_TIMER tag;
+      void *fileHandle;
+      fileHandle = XBMC->OpenFile(items[i].path, 0);
+      XBMC->ReadFile(fileHandle, &tag, sizeof(tag));
+      XBMC->CloseFile(fileHandle);
+      tag.iClientIndex = i + 1;
+      XBMC->Log(LOG_ERROR, ">>>GetTimers %d %s", tag.iClientIndex, tag.strTitle);
+      PVR->TransferTimerEntry(handle, &tag);
+    }
+  }
+  return PVR_ERROR_NO_ERROR;
+}
+
+PVR_ERROR AddTimer(const PVR_TIMER &timerinfo) {
+  XBMC->Log(LOG_ERROR, ">>>AddTimer");
+  int timestamp = (int)time(NULL);
+  std::string ts = std::to_string(timestamp);
+  //TODO mkdir timers
+  std::string filename = "special://temp/timers/" + ts;
+  g_timerStamps.push_back(filename);
+  XBMC->Log(LOG_ERROR, ">>>AddTimer %d %s", timerinfo.iClientIndex, timerinfo.strTitle);
+  void* fileHandle = XBMC->OpenFileForWrite(filename.c_str(), true);
+  if (fileHandle != NULL)
+  {
+    XBMC->WriteFile(fileHandle, &timerinfo,sizeof(timerinfo));
+  }
+  XBMC->CloseFile(fileHandle);
+
+  PVR->TriggerTimerUpdate();
+
+  return PVR_ERROR_NO_ERROR;
+}
+
+PVR_ERROR DeleteTimer(const PVR_TIMER &timerinfo, bool bForceDelete) {
+  XBMC->Log(LOG_ERROR, ">>>DeleteTimer");
+
+  void* fileHandle = XBMC->OpenFileForWrite("special://temp/delete.txt", true);
+  if (fileHandle != NULL)
+  {
+    XBMC->WriteFile(fileHandle, &timerinfo,sizeof(timerinfo));
+  }
+  XBMC->CloseFile(fileHandle);
+  XBMC->Log(LOG_ERROR, ">>>DeleteTimer %d %s", timerinfo.iClientIndex, timerinfo.strTitle);
+  std::string filename = g_timerStamps.at(timerinfo.iClientIndex-1);
+  XBMC->DeleteFile(filename.c_str());
+
+  PVR->TriggerTimerUpdate();
+
+  return PVR_ERROR_NO_ERROR;
+}
+
+PVR_ERROR UpdateTimer(const PVR_TIMER &timerinfo) {
+  XBMC->Log(LOG_ERROR, ">>>UpdateTimer");
+
+  void* fileHandle = XBMC->OpenFileForWrite("special://temp/update.txt", true);
+  if (fileHandle != NULL)
+  {
+    XBMC->WriteFile(fileHandle, &timerinfo,sizeof(timerinfo));
+  }
+  XBMC->CloseFile(fileHandle);
+
+  PVR->TriggerTimerUpdate();
 
   return PVR_ERROR_NO_ERROR;
 }
@@ -516,11 +639,11 @@ PVR_ERROR SetRecordingLastPlayedPosition(const PVR_RECORDING &recording, int las
 int GetRecordingLastPlayedPosition(const PVR_RECORDING &recording) { return -1; }
 PVR_ERROR GetRecordingEdl(const PVR_RECORDING&, PVR_EDL_ENTRY[], int*) { return PVR_ERROR_NOT_IMPLEMENTED; };
 //PVR_ERROR GetTimerTypes(PVR_TIMER_TYPE types[], int *size) { return PVR_ERROR_NOT_IMPLEMENTED; }
-int GetTimersAmount(void) { return -1; }
-PVR_ERROR GetTimers(ADDON_HANDLE handle) { return PVR_ERROR_NOT_IMPLEMENTED; }
-PVR_ERROR AddTimer(const PVR_TIMER &timer) { return PVR_ERROR_NOT_IMPLEMENTED; }
-PVR_ERROR DeleteTimer(const PVR_TIMER &timer, bool bForceDelete) { return PVR_ERROR_NOT_IMPLEMENTED; }
-PVR_ERROR UpdateTimer(const PVR_TIMER &timer) { return PVR_ERROR_NOT_IMPLEMENTED; }
+//int GetTimersAmount(void) { return -1; }
+//PVR_ERROR GetTimers(ADDON_HANDLE handle) { return PVR_ERROR_NOT_IMPLEMENTED; }
+//PVR_ERROR AddTimer(const PVR_TIMER &timer) { return PVR_ERROR_NOT_IMPLEMENTED; }
+//PVR_ERROR DeleteTimer(const PVR_TIMER &timer, bool bForceDelete) { return PVR_ERROR_NOT_IMPLEMENTED; }
+//PVR_ERROR UpdateTimer(const PVR_TIMER &timer) { return PVR_ERROR_NOT_IMPLEMENTED; }
 void DemuxAbort(void) {}
 DemuxPacket* DemuxRead(void) { return NULL; }
 bool IsTimeshifting(void) { return false; }
