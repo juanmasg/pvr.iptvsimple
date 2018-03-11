@@ -578,13 +578,14 @@ PVR_ERROR AddTimer(const PVR_TIMER &timerinfo) {
 
 PVR_ERROR DeleteTimer(const PVR_TIMER &timerinfo, bool bForceDelete) {
   XBMC->Log(LOG_ERROR, ">>>DeleteTimer");
-
+  /*
   void* fileHandle = XBMC->OpenFileForWrite("special://temp/delete.txt", true);
   if (fileHandle != NULL)
   {
     XBMC->WriteFile(fileHandle, &timerinfo,sizeof(timerinfo));
   }
   XBMC->CloseFile(fileHandle);
+  */
   XBMC->Log(LOG_ERROR, ">>>DeleteTimer %d %s", timerinfo.iClientIndex, timerinfo.strTitle);
   std::string filename = g_timerStamps.at(timerinfo.iClientIndex-1);
   XBMC->DeleteFile(filename.c_str());
@@ -596,14 +597,17 @@ PVR_ERROR DeleteTimer(const PVR_TIMER &timerinfo, bool bForceDelete) {
 
 PVR_ERROR UpdateTimer(const PVR_TIMER &timerinfo) {
   XBMC->Log(LOG_ERROR, ">>>UpdateTimer");
-
+  /*
   void* fileHandle = XBMC->OpenFileForWrite("special://temp/update.txt", true);
   if (fileHandle != NULL)
   {
     XBMC->WriteFile(fileHandle, &timerinfo,sizeof(timerinfo));
   }
   XBMC->CloseFile(fileHandle);
-
+  */
+  std::string filename = g_timerStamps.at(timerinfo.iClientIndex-1);
+  XBMC->DeleteFile(filename.c_str());
+  AddTimer(timerinfo);
   PVR->TriggerTimerUpdate();
 
   return PVR_ERROR_NO_ERROR;
