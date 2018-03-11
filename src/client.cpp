@@ -68,11 +68,11 @@ extern std::string PathCombine(const std::string &strPath, const std::string &st
 {
   std::string strResult = strPath;
   if (strResult.at(strResult.size() - 1) == '\\' ||
-      strResult.at(strResult.size() - 1) == '/') 
+      strResult.at(strResult.size() - 1) == '/')
   {
     strResult.append(strFileName);
   }
-  else 
+  else
   {
     strResult.append("/");
     strResult.append(strFileName);
@@ -97,13 +97,13 @@ void ADDON_ReadSettings(void)
 {
   char buffer[1024];
   int iPathType = 0;
-  if (!XBMC->GetSetting("m3uPathType", &iPathType)) 
+  if (!XBMC->GetSetting("m3uPathType", &iPathType))
   {
     iPathType = 1;
   }
   if (iPathType)
   {
-    if (XBMC->GetSetting("m3uUrl", &buffer)) 
+    if (XBMC->GetSetting("m3uUrl", &buffer))
     {
       g_strM3UPath = buffer;
     }
@@ -114,23 +114,23 @@ void ADDON_ReadSettings(void)
   }
   else
   {
-    if (XBMC->GetSetting("m3uPath", &buffer)) 
+    if (XBMC->GetSetting("m3uPath", &buffer))
     {
       g_strM3UPath = buffer;
     }
     g_bCacheM3U = false;
   }
-  if (!XBMC->GetSetting("startNum", &g_iStartNumber)) 
+  if (!XBMC->GetSetting("startNum", &g_iStartNumber))
   {
     g_iStartNumber = 1;
   }
-  if (!XBMC->GetSetting("epgPathType", &iPathType)) 
+  if (!XBMC->GetSetting("epgPathType", &iPathType))
   {
     iPathType = 1;
   }
   if (iPathType)
   {
-    if (XBMC->GetSetting("epgUrl", &buffer)) 
+    if (XBMC->GetSetting("epgUrl", &buffer))
     {
       g_strTvgPath = buffer;
     }
@@ -141,7 +141,7 @@ void ADDON_ReadSettings(void)
   }
   else
   {
-    if (XBMC->GetSetting("epgPath", &buffer)) 
+    if (XBMC->GetSetting("epgPath", &buffer))
     {
       g_strTvgPath = buffer;
     }
@@ -156,11 +156,11 @@ void ADDON_ReadSettings(void)
   {
     g_bTSOverride = true;
   }
-  if (!XBMC->GetSetting("logoPathType", &iPathType)) 
+  if (!XBMC->GetSetting("logoPathType", &iPathType))
   {
     iPathType = 1;
   }
-  if (XBMC->GetSetting(iPathType ? "logoBaseUrl" : "logoPath", &buffer)) 
+  if (XBMC->GetSetting(iPathType ? "logoBaseUrl" : "logoPath", &buffer))
   {
     g_strLogoPath = buffer;
   }
@@ -228,7 +228,7 @@ void ADDON_Destroy()
 
 ADDON_STATUS ADDON_SetSetting(const char *settingName, const void *settingValue)
 {
-  // reset cache and restart addon 
+  // reset cache and restart addon
 
   std::string strFile = GetUserFilePath(M3U_FILE_NAME);
   if (XBMC->FileExists(strFile.c_str(), false))
@@ -271,10 +271,11 @@ PVR_ERROR GetAddonCapabilities(PVR_ADDON_CAPABILITIES* pCapabilities)
   pCapabilities->bSupportsTV              = true;
   pCapabilities->bSupportsRadio           = true;
   pCapabilities->bSupportsChannelGroups   = true;
-  pCapabilities->bSupportsRecordings      = false;
+  pCapabilities->bSupportsRecordings      = true;
   pCapabilities->bSupportsRecordingsRename = false;
   pCapabilities->bSupportsRecordingsLifetimeChange = false;
   pCapabilities->bSupportsDescrambleInfo = false;
+  pCapabilities->bSupportsTimers          = true;
 
   return PVR_ERROR_NO_ERROR;
 }
@@ -395,6 +396,96 @@ PVR_ERROR SignalStatus(PVR_SIGNAL_STATUS &signalStatus)
   return PVR_ERROR_NO_ERROR;
 }
 
+PVR_ERROR GetTimerTypes ( PVR_TIMER_TYPE types[], int *size )
+{
+  unsigned int TIMER_ONCE_MANUAL_ATTRIBS =  PVR_TIMER_TYPE_IS_MANUAL |
+    PVR_TIMER_TYPE_SUPPORTS_ENABLE_DISABLE           |
+    PVR_TIMER_TYPE_SUPPORTS_CHANNELS                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_TIME               |
+    PVR_TIMER_TYPE_SUPPORTS_TITLE_EPG_MATCH          |
+    PVR_TIMER_TYPE_SUPPORTS_FULLTEXT_EPG_MATCH       |
+    PVR_TIMER_TYPE_SUPPORTS_FIRST_DAY                |
+    PVR_TIMER_TYPE_SUPPORTS_WEEKDAYS                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORD_ONLY_NEW_EPISODES |
+    PVR_TIMER_TYPE_SUPPORTS_START_END_MARGIN         |
+    PVR_TIMER_TYPE_SUPPORTS_PRIORITY                 |
+    PVR_TIMER_TYPE_SUPPORTS_LIFETIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_FOLDERS        |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_GROUP          |
+    PVR_TIMER_TYPE_SUPPORTS_END_TIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_ANYTIME            |
+    PVR_TIMER_TYPE_SUPPORTS_END_ANYTIME              |
+    PVR_TIMER_TYPE_SUPPORTS_MAX_RECORDINGS           |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_TAG_ON_CREATE        |
+    //PVR_TIMER_TYPE_FORBIDS_EPG_TAG_ON_CREATE         |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIES_ON_CREATE     |
+    PVR_TIMER_TYPE_SUPPORTS_ANY_CHANNEL               |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIESLINK_ON_CREATE
+    0x0
+    ;
+
+  unsigned int TIMER_ONCE_EPG_ATTRIBS = PVR_TIMER_TYPE_IS_REPEATING |
+    PVR_TIMER_TYPE_SUPPORTS_ENABLE_DISABLE           |
+    PVR_TIMER_TYPE_SUPPORTS_CHANNELS                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_TIME               |
+    PVR_TIMER_TYPE_SUPPORTS_TITLE_EPG_MATCH          |
+    PVR_TIMER_TYPE_SUPPORTS_FULLTEXT_EPG_MATCH       |
+    PVR_TIMER_TYPE_SUPPORTS_FIRST_DAY                |
+    PVR_TIMER_TYPE_SUPPORTS_WEEKDAYS                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORD_ONLY_NEW_EPISODES |
+    PVR_TIMER_TYPE_SUPPORTS_START_END_MARGIN         |
+    PVR_TIMER_TYPE_SUPPORTS_PRIORITY                 |
+    PVR_TIMER_TYPE_SUPPORTS_LIFETIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_FOLDERS        |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_GROUP          |
+    PVR_TIMER_TYPE_SUPPORTS_END_TIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_ANYTIME            |
+    PVR_TIMER_TYPE_SUPPORTS_END_ANYTIME              |
+    PVR_TIMER_TYPE_SUPPORTS_MAX_RECORDINGS           |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_TAG_ON_CREATE        |
+    //PVR_TIMER_TYPE_FORBIDS_EPG_TAG_ON_CREATE         |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIES_ON_CREATE     |
+    PVR_TIMER_TYPE_SUPPORTS_ANY_CHANNEL               |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIESLINK_ON_CREATE
+    0x0
+    ;
+  unsigned int TIMER_ONCE_EPG_ATTRIBS2 =
+    PVR_TIMER_TYPE_SUPPORTS_ENABLE_DISABLE           |
+    PVR_TIMER_TYPE_SUPPORTS_CHANNELS                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_TIME               |
+    PVR_TIMER_TYPE_SUPPORTS_TITLE_EPG_MATCH          |
+    PVR_TIMER_TYPE_SUPPORTS_FULLTEXT_EPG_MATCH       |
+    PVR_TIMER_TYPE_SUPPORTS_FIRST_DAY                |
+    PVR_TIMER_TYPE_SUPPORTS_WEEKDAYS                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORD_ONLY_NEW_EPISODES |
+    PVR_TIMER_TYPE_SUPPORTS_START_END_MARGIN         |
+    PVR_TIMER_TYPE_SUPPORTS_PRIORITY                 |
+    PVR_TIMER_TYPE_SUPPORTS_LIFETIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_FOLDERS        |
+    PVR_TIMER_TYPE_SUPPORTS_RECORDING_GROUP          |
+    PVR_TIMER_TYPE_SUPPORTS_END_TIME                 |
+    PVR_TIMER_TYPE_SUPPORTS_START_ANYTIME            |
+    PVR_TIMER_TYPE_SUPPORTS_END_ANYTIME              |
+    PVR_TIMER_TYPE_SUPPORTS_MAX_RECORDINGS           |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_TAG_ON_CREATE        |
+    //PVR_TIMER_TYPE_FORBIDS_EPG_TAG_ON_CREATE         |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIES_ON_CREATE     |
+    PVR_TIMER_TYPE_SUPPORTS_ANY_CHANNEL               |
+    //PVR_TIMER_TYPE_REQUIRES_EPG_SERIESLINK_ON_CREATE
+    0x0
+    ;
+
+  types[0].iId = 0;
+  types[0].iAttributes = TIMER_ONCE_MANUAL_ATTRIBS;
+  types[1].iId = 1;
+  types[1].iAttributes = TIMER_ONCE_EPG_ATTRIBS;
+  types[2].iId = 2;
+  types[2].iAttributes = TIMER_ONCE_EPG_ATTRIBS2;
+  *size = 3;
+
+  return PVR_ERROR_NO_ERROR;
+}
+
 /** UNUSED API FUNCTIONS */
 bool CanPauseStream(void) { return false; }
 int GetRecordingsAmount(bool deleted) { return -1; }
@@ -424,7 +515,7 @@ PVR_ERROR SetRecordingPlayCount(const PVR_RECORDING &recording, int count) { ret
 PVR_ERROR SetRecordingLastPlayedPosition(const PVR_RECORDING &recording, int lastplayedposition) { return PVR_ERROR_NOT_IMPLEMENTED; }
 int GetRecordingLastPlayedPosition(const PVR_RECORDING &recording) { return -1; }
 PVR_ERROR GetRecordingEdl(const PVR_RECORDING&, PVR_EDL_ENTRY[], int*) { return PVR_ERROR_NOT_IMPLEMENTED; };
-PVR_ERROR GetTimerTypes(PVR_TIMER_TYPE types[], int *size) { return PVR_ERROR_NOT_IMPLEMENTED; }
+//PVR_ERROR GetTimerTypes(PVR_TIMER_TYPE types[], int *size) { return PVR_ERROR_NOT_IMPLEMENTED; }
 int GetTimersAmount(void) { return -1; }
 PVR_ERROR GetTimers(ADDON_HANDLE handle) { return PVR_ERROR_NOT_IMPLEMENTED; }
 PVR_ERROR AddTimer(const PVR_TIMER &timer) { return PVR_ERROR_NOT_IMPLEMENTED; }
